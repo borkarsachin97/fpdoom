@@ -93,17 +93,21 @@ void my_disp_flush(lv_display_t *disp_drv, const lv_area_t *area, uint8_t *color
 void test_lvgl(void) {
     struct sys_display *disp = &sys_data.display;
     unsigned w = disp->w2, h = disp->h2;
-
+		printf("Hardware sequence \n");
     // Hardware sequence
     sys_data.brightness = 100;
+    printf("brightness \n");
     framebuf_alloc();
+    printf("framebuf_alloc \n");
     sys_framebuffer(framebuf);
+    printf("sys_framebuffer \n");
     sys_start();
+    printf("sys_start \n");
     sys_brightness(sys_data.brightness);
-
+    printf("sys_brightness \n");
     // Initialize LVGL
     lv_init();
-
+    printf("lv_init \n");
     // Initialize display driver
     lv_display_t * display = lv_display_create(w, h);
     static uint8_t *buf1;
@@ -111,11 +115,12 @@ void test_lvgl(void) {
     lv_display_set_buffers(display, buf1, NULL, w * h * 2, LV_DISPLAY_RENDER_MODE_PARTIAL);
     lv_display_set_flush_cb(display, my_disp_flush);
 
-
+    printf("Create a test UI \n");
     // Create a test UI
     lv_obj_t *btn = lv_btn_create(lv_screen_active());
     lv_obj_align(btn, LV_ALIGN_CENTER, 0, 0);
     lv_obj_t *label = lv_label_create(btn);
+     printf("LVGL Testing \n");
     lv_label_set_text(label, "LVGL Testing");
 
     // The heartbeat loop
@@ -123,6 +128,9 @@ void test_lvgl(void) {
         lv_timer_handler();
         sys_wait_ms(5); // Adjust delay to maintain a stable clock tick
         lv_tick_inc(5); // Inform LVGL that time has passed
+        sys_start_refresh();
+        sys_wait_refresh();
+
     }
 }
 
@@ -538,6 +546,7 @@ int main(int argc, char **argv) {
 	while (argc > 1) {
 		if (!strcmp(argv[1], "display")) {
 			test_display();
+
 			argc -= 1; argv += 1;
 
 		} else if (!strcmp(argv[1], "lvgl")) {
@@ -629,4 +638,3 @@ void keytrn_init(void) {
 	FILL_KEYTRN(1)
 #undef FILL_KEYTRN
 }
-
