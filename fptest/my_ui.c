@@ -1,9 +1,13 @@
 #include "my_ui.h"
+#include "my_snake.h"
+#include "my_pushbox.h"
 
 // Define a style for the icons
 static lv_style_t style_icon;
 static lv_style_t style_icon_pr;
 static lv_style_t style_icon_focus;
+
+static lv_group_t * main_group;
 
 static void btn_event_cb(lv_event_t * e)
 {
@@ -11,13 +15,25 @@ static void btn_event_cb(lv_event_t * e)
     lv_obj_t * btn = (lv_obj_t*)lv_event_get_target(e);
 
     if(code == LV_EVENT_CLICKED) {
-        // Just print something for now
-        LV_LOG_USER("Icon clicked");
+        // We stored the app index in the user_data
+        int app_id = (int)(intptr_t)lv_event_get_user_data(e);
+
+        if (app_id == 0) {
+            // Launch Snake
+            create_snake_game(main_group, lv_screen_active());
+        } else if (app_id == 1) {
+            // Launch Pushbox
+            create_pushbox_game(main_group, lv_screen_active());
+        } else {
+            LV_LOG_USER("Other icon clicked");
+        }
     }
 }
 
 void create_phone_ui(lv_group_t * g)
 {
+    main_group = g;
+
     // Screen background (wallpaper)
     lv_obj_t * scr = lv_screen_active();
     lv_obj_set_style_bg_color(scr, lv_color_hex(0x202020), 0); // Dark grey wallpaper
@@ -90,32 +106,32 @@ void create_phone_ui(lv_group_t * g)
 
     // App definitions
     const char * app_icons[] = {
+        LV_SYMBOL_PLAY,     // Snake
+        LV_SYMBOL_DUMMY,    // Pushbox
         LV_SYMBOL_CALL,
         LV_SYMBOL_DIRECTORY,
         LV_SYMBOL_IMAGE,
         LV_SYMBOL_SETTINGS,
         LV_SYMBOL_AUDIO,
         LV_SYMBOL_VIDEO,
-        LV_SYMBOL_ENVELOPE,
-        LV_SYMBOL_BELL,
-        LV_SYMBOL_FILE
+        LV_SYMBOL_ENVELOPE
     };
 
     uint32_t app_colors[] = {
+        0x00FF00, // Snake - Green
+        0x8B4513, // Pushbox - Brown
         0x4CAF50, // Call - Green
         0x2196F3, // Contacts - Blue
         0xFFC107, // Gallery - Yellow
         0x9E9E9E, // Settings - Grey
         0x9C27B0, // Music - Purple
         0xF44336, // Video - Red
-        0x00BCD4, // Messages - Cyan
-        0xFF9800, // Alarm - Orange
-        0x3F51B5  // Calendar - Indigo
+        0x00BCD4  // Messages - Cyan
     };
 
     const char * app_names[] = {
-        "Call", "Contacts", "Gallery", "Settings",
-        "Music", "Video", "Messages", "Clock", "Calendar"
+        "Snake", "Pushbox", "Call", "Contacts",
+        "Gallery", "Settings", "Music", "Video", "Messages"
     };
 
     // Create the apps
@@ -155,6 +171,6 @@ void create_phone_ui(lv_group_t * g)
         lv_group_add_obj(g, btn);
 
         // Add event
-        lv_obj_add_event_cb(btn, btn_event_cb, LV_EVENT_CLICKED, NULL);
+        lv_obj_add_event_cb(btn, btn_event_cb, LV_EVENT_CLICKED, (void*)(intptr_t)i);
     }
 }
