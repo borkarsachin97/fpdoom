@@ -11,6 +11,7 @@
 #endif
 #include "efuse.h"
 #include "lvgl.h"
+#include "my_ui.h"
 
 
 #define FAT_READ_SYS \
@@ -110,18 +111,25 @@ void test_lvgl(void) {
     printf("lv_init \n");
     // Initialize display driver
     lv_display_t * display = lv_display_create(w, h);
+
+    // Initialize keypad driver
+    extern void my_keypad_read(lv_indev_t * indev_drv, lv_indev_data_t * data);
+    lv_indev_t * indev = lv_indev_create();
+    lv_indev_set_type(indev, LV_INDEV_TYPE_KEYPAD);
+    lv_indev_set_read_cb(indev, my_keypad_read);
     static uint8_t *buf1;
     buf1 = malloc(w * h * 2);
     lv_display_set_buffers(display, buf1, NULL, w * h * 2, LV_DISPLAY_RENDER_MODE_PARTIAL);
     lv_display_set_flush_cb(display, my_disp_flush);
 
     printf("Create a test UI \n");
-    // Create a test UI
-    lv_obj_t *btn = lv_btn_create(lv_screen_active());
-    lv_obj_align(btn, LV_ALIGN_CENTER, 0, 0);
-    lv_obj_t *label = lv_label_create(btn);
-     printf("LVGL Testing \n");
-    lv_label_set_text(label, "LVGL Testing");
+    // Create a default group and associate it with the keypad
+    lv_group_t * g = lv_group_create();
+    lv_group_set_default(g);
+    lv_indev_set_group(indev, g);
+
+    printf("Create a phone UI \n");
+    create_phone_ui(g);
 
     // The heartbeat loop
     while (1) {
@@ -536,7 +544,7 @@ int main(int argc, char **argv) {
 
 	if (argc < 2) {
 		static const char * const tab[] = {
-			"fptest", "cpuid", "display", "timer",
+			"fptest", "cpuid", "lvgl", "timer",
 			"sfc", "lzma", "usb", "sdio",
 			"keypad", NULL };
 		argv = (char**)tab;

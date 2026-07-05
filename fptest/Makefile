@@ -3,7 +3,7 @@ TWO_STAGE = 0
 
 SYS_EXTRA = sdio microfat sfc
 
-APP_SRCS = main
+APP_SRCS = main my_keypad my_ui
 APP_OBJS1 = $(APP_SRCS:%=$(OBJDIR)/app/%.o)
 APP_OBJS2 =
 
