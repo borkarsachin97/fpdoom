@@ -10,6 +10,8 @@
 #include "sfc.h"
 #endif
 #include "efuse.h"
+#include "lvgl.h"
+
 
 #define FAT_READ_SYS \
 	if (sdio_read_block(sector, buf)) break;
@@ -24,10 +26,10 @@ void lcd_appinit(void) {
 	disp->h2 = h;
 }
 
-static void *framebuf_mem = NULL;
-static uint16_t *framebuf = NULL;
+void *framebuf_mem = NULL;
+uint16_t *framebuf = NULL;
 
-static void framebuf_alloc(void) {
+void framebuf_alloc(void) {
 	struct sys_display *disp = &sys_data.display;
 	int w = disp->w2, h = disp->h2;
 	size_t size = w * h;
@@ -62,14 +64,66 @@ static void test_refresh(void) {
 		n++;
 	} while (t1 - t0 < 1000);
 	t1 -= t0;
-	printf("%d frames in %d ms\n", n, t1);
+	printf("%lu frames in %lu ms\n", (long unsigned)n, (long unsigned)t1);
 	t2 = t1 / n;
 	t3 = (t1 - t2 * n) * 1000 / n;
-	printf("1 frame in %d.%03d ms\n", t2, t3);
+	printf("1 frame in %lu.%03lu ms\n", (long unsigned)t2, (long unsigned)t3);
 	t3 = n * 1000;
 	t2 = t3 / t1;
 	t3 = (t3 - t2 * t1) * 1000 / t1;
-	printf("%d.%03d frames per second\n", t2, t3);
+	printf("%lu.%03lu frames per second\n", (long unsigned)t2, (long unsigned)t3);
+}
+
+
+void my_disp_flush(lv_display_t *disp_drv, const lv_area_t *area, uint8_t *color_p) {
+    int32_t x, y;
+    struct sys_display *disp = &sys_data.display;
+    unsigned w = disp->w2;
+
+    for (y = area->y1; y <= area->y2; y++) {
+        for (x = area->x1; x <= area->x2; x++) {
+            framebuf[y * w + x] = ((uint16_t*)color_p)[(y - area->y1) * lv_area_get_width(area) + (x - area->x1)];
+        }
+    }
+
+    // Notify LVGL that flushing is complete
+    lv_display_flush_ready(disp_drv);
+}
+
+void test_lvgl(void) {
+    struct sys_display *disp = &sys_data.display;
+    unsigned w = disp->w2, h = disp->h2;
+
+    // Hardware sequence
+    sys_data.brightness = 100;
+    framebuf_alloc();
+    sys_framebuffer(framebuf);
+    sys_start();
+    sys_brightness(sys_data.brightness);
+
+    // Initialize LVGL
+    lv_init();
+
+    // Initialize display driver
+    lv_display_t * display = lv_display_create(w, h);
+    static uint8_t *buf1;
+    buf1 = malloc(w * h * 2);
+    lv_display_set_buffers(display, buf1, NULL, w * h * 2, LV_DISPLAY_RENDER_MODE_PARTIAL);
+    lv_display_set_flush_cb(display, my_disp_flush);
+
+
+    // Create a test UI
+    lv_obj_t *btn = lv_btn_create(lv_screen_active());
+    lv_obj_align(btn, LV_ALIGN_CENTER, 0, 0);
+    lv_obj_t *label = lv_label_create(btn);
+    lv_label_set_text(label, "LVGL Testing");
+
+    // The heartbeat loop
+    while (1) {
+        lv_timer_handler();
+        sys_wait_ms(5); // Adjust delay to maintain a stable clock tick
+        lv_tick_inc(5); // Inform LVGL that time has passed
+    }
 }
 
 void test_display(void) {
@@ -484,6 +538,10 @@ int main(int argc, char **argv) {
 	while (argc > 1) {
 		if (!strcmp(argv[1], "display")) {
 			test_display();
+			argc -= 1; argv += 1;
+
+		} else if (!strcmp(argv[1], "lvgl")) {
+			test_lvgl();
 			argc -= 1; argv += 1;
 		} else if (!strcmp(argv[1], "keypad")) {
 			test_keypad();

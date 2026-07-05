@@ -7,6 +7,13 @@ APP_SRCS = main
 APP_OBJS1 = $(APP_SRCS:%=$(OBJDIR)/app/%.o)
 APP_OBJS2 =
 
+
+LVGL_PATH ?= ${shell pwd}/lvgl
+include $(LVGL_PATH)/lvgl.mk
+APP_CFLAGS += -I$(LVGL_PATH)
+
+APP_OBJS2 += $(CSRCS:%.c=$(OBJDIR)/app/%.o)
+
 include ../buildinc.make
 
 #CFLAGS += -DSDIO_VERBOSE=2
