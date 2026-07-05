@@ -122,9 +122,11 @@ static void pb_event_cb(lv_event_t * e) {
             draw_map();
         }
         else if(key == LV_KEY_PREV) { // Exit
+            lv_group_t * game_group = lv_indev_get_group(lv_indev_active());
             lv_indev_set_group(lv_indev_active(), input_group); // Restore home group
+            lv_group_delete(game_group); // Prevent memory leak
             lv_screen_load(old_scr);
-            lv_obj_delete(game_scr);
+            lv_obj_delete_async(game_scr);
         }
     }
 }

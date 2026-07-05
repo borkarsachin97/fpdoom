@@ -4,6 +4,9 @@
 #include "my_settings.h"
 #include "my_hw_info.h"
 #include "my_test.h"
+#include "my_calendar.h"
+#include "my_calculator.h"
+#include "my_file_manager.h"
 
 // Define a style for the icons
 static lv_style_t style_icon;
@@ -22,19 +25,20 @@ static void btn_event_cb(lv_event_t * e)
         int app_id = (int)(intptr_t)lv_event_get_user_data(e);
 
         if (app_id == 0) {
-            // Launch Snake
             create_snake_game(main_group, lv_screen_active());
         } else if (app_id == 1) {
-            // Launch Pushbox
             create_pushbox_game(main_group, lv_screen_active());
+        } else if (app_id == 2) {
+            create_calendar_app(main_group, lv_screen_active());
+        } else if (app_id == 3) {
+            create_calculator_app(main_group, lv_screen_active());
+        } else if (app_id == 4) {
+            create_file_manager_app(main_group, lv_screen_active());
         } else if (app_id == 5) {
-            // Settings
             create_settings_app(main_group, lv_screen_active());
         } else if (app_id == 6) {
-            // HW Info (music icon repurposed for now)
             create_hw_info_app(main_group, lv_screen_active());
         } else if (app_id == 7) {
-            // Test
             create_test_app(main_group, lv_screen_active());
         } else {
             LV_LOG_USER("Other icon clicked");
@@ -119,30 +123,30 @@ void create_phone_ui(lv_group_t * g)
     const char * app_icons[] = {
         LV_SYMBOL_PLAY,     // Snake
         LV_SYMBOL_DUMMY,    // Pushbox
-        LV_SYMBOL_CALL,
-        LV_SYMBOL_DIRECTORY,
-        LV_SYMBOL_IMAGE,
-        LV_SYMBOL_SETTINGS,
-        LV_SYMBOL_AUDIO,
-        LV_SYMBOL_VIDEO,
-        LV_SYMBOL_ENVELOPE
+        LV_SYMBOL_LIST,     // Calendar (no calendar symbol in default list)
+        LV_SYMBOL_PLUS,     // Calculator (approx)
+        LV_SYMBOL_FILE,     // File Manager
+        LV_SYMBOL_SETTINGS, // Settings
+        LV_SYMBOL_AUDIO,    // HW Info
+        LV_SYMBOL_VIDEO,    // Test
+        LV_SYMBOL_ENVELOPE  // Messages
     };
 
     uint32_t app_colors[] = {
         0x00FF00, // Snake - Green
         0x8B4513, // Pushbox - Brown
-        0x4CAF50, // Call - Green
-        0x2196F3, // Contacts - Blue
-        0xFFC107, // Gallery - Yellow
+        0x3F51B5, // Calendar - Indigo
+        0xFF5722, // Calculator - Deep Orange
+        0xFFC107, // File Manager - Yellow
         0x9E9E9E, // Settings - Grey
-        0x9C27B0, // Music - Purple
-        0xF44336, // Video - Red
+        0x9C27B0, // HW Info - Purple
+        0xF44336, // Test - Red
         0x00BCD4  // Messages - Cyan
     };
 
     const char * app_names[] = {
-        "Snake", "Pushbox", "Call", "Contacts",
-        "Gallery", "Settings", "HW Info", "Test", "Messages"
+        "Snake", "Pushbox", "Calendar", "Calc",
+        "Files", "Settings", "HW Info", "Test", "Messages"
     };
 
     // Create the apps

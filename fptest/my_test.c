@@ -16,9 +16,11 @@ static void exit_event_cb(lv_event_t * e) {
     if(code == LV_EVENT_KEY) {
         uint32_t key = lv_event_get_key(e);
         if(key == LV_KEY_PREV) { // Exit
+            lv_group_t * app_group = lv_indev_get_group(lv_indev_active());
             lv_indev_set_group(lv_indev_active(), input_group); // Restore home group
+            lv_group_delete(app_group);
             lv_screen_load(old_scr);
-            lv_obj_delete(test_scr);
+            lv_obj_delete_async(test_scr);
         }
     }
 }

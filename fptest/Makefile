@@ -3,7 +3,7 @@ TWO_STAGE = 0
 
 SYS_EXTRA = sdio microfat sfc
 
-APP_SRCS = main my_keypad my_ui my_snake my_pushbox my_settings my_hw_info my_test
+APP_SRCS = main my_keypad my_ui my_snake my_pushbox my_settings my_hw_info my_test my_calendar my_calculator my_file_manager
 APP_OBJS1 = $(APP_SRCS:%=$(OBJDIR)/app/%.o)
 APP_OBJS2 =
 

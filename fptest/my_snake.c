@@ -90,7 +90,7 @@ static void game_event_cb(lv_event_t * e) {
             // Restart logic
             for(int i=3; i<snake_len; i++) {
                 if (snake_objs[i]) {
-                    lv_obj_delete(snake_objs[i]);
+                    lv_obj_delete(snake_objs[i]); // Revert to sync for restart, safe here
                     snake_objs[i] = NULL;
                 }
             }
@@ -105,9 +105,11 @@ static void game_event_cb(lv_event_t * e) {
         else if (key == LV_KEY_PREV) {
             // Exit
             lv_timer_delete(timer);
+            lv_group_t * game_group = lv_indev_get_group(lv_indev_active());
             lv_indev_set_group(lv_indev_active(), input_group); // Restore home group
+            lv_group_delete(game_group); // Prevent memory leak
             lv_screen_load(old_scr);
-            lv_obj_delete(game_scr);
+            lv_obj_delete_async(game_scr);
         }
     }
 }
