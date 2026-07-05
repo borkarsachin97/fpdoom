@@ -9,7 +9,10 @@
 extern "C" {
 #endif
 
-struct _IO_FILE;
+struct _IO_FILE {
+	uint16_t flags, handle, pos, len;
+	char *buf;
+};
 typedef struct _IO_FILE FILE;
 
 #define BUFSIZ 1024
