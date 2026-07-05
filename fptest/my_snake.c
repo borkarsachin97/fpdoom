@@ -105,6 +105,7 @@ static void game_event_cb(lv_event_t * e) {
         else if (key == LV_KEY_PREV) {
             // Exit
             lv_timer_delete(timer);
+            lv_indev_set_group(lv_indev_active(), input_group); // Restore home group
             lv_screen_load(old_scr);
             lv_obj_delete(game_scr);
         }
@@ -142,9 +143,13 @@ void create_snake_game(lv_group_t * g, lv_obj_t * parent_scr) {
     spawn_food();
     draw_game();
 
+    // Create a new group exclusively for the game so focus isn't stolen by the home screen
+    lv_group_t * game_group = lv_group_create();
+    lv_indev_set_group(lv_indev_active(), game_group);
+
     // Add event handler to the screen itself
     lv_obj_add_event_cb(game_scr, game_event_cb, LV_EVENT_KEY, NULL);
-    lv_group_add_obj(g, game_scr);
+    lv_group_add_obj(game_group, game_scr);
     lv_group_focus_obj(game_scr);
 
     lv_screen_load(game_scr);

@@ -122,6 +122,7 @@ static void pb_event_cb(lv_event_t * e) {
             draw_map();
         }
         else if(key == LV_KEY_PREV) { // Exit
+            lv_indev_set_group(lv_indev_active(), input_group); // Restore home group
             lv_screen_load(old_scr);
             lv_obj_delete(game_scr);
         }
@@ -158,8 +159,12 @@ void create_pushbox_game(lv_group_t * g, lv_obj_t * parent_scr) {
     px = 2; py = 2;
     draw_map();
 
+    // Create a new group exclusively for the game so focus isn't stolen by the home screen
+    lv_group_t * game_group = lv_group_create();
+    lv_indev_set_group(lv_indev_active(), game_group);
+
     lv_obj_add_event_cb(game_scr, pb_event_cb, LV_EVENT_KEY, NULL);
-    lv_group_add_obj(g, game_scr);
+    lv_group_add_obj(game_group, game_scr);
     lv_group_focus_obj(game_scr);
 
     lv_screen_load(game_scr);

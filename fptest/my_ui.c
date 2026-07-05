@@ -1,6 +1,9 @@
 #include "my_ui.h"
 #include "my_snake.h"
 #include "my_pushbox.h"
+#include "my_settings.h"
+#include "my_hw_info.h"
+#include "my_test.h"
 
 // Define a style for the icons
 static lv_style_t style_icon;
@@ -24,6 +27,15 @@ static void btn_event_cb(lv_event_t * e)
         } else if (app_id == 1) {
             // Launch Pushbox
             create_pushbox_game(main_group, lv_screen_active());
+        } else if (app_id == 5) {
+            // Settings
+            create_settings_app(main_group, lv_screen_active());
+        } else if (app_id == 6) {
+            // HW Info (music icon repurposed for now)
+            create_hw_info_app(main_group, lv_screen_active());
+        } else if (app_id == 7) {
+            // Test
+            create_test_app(main_group, lv_screen_active());
         } else {
             LV_LOG_USER("Other icon clicked");
         }
@@ -69,26 +81,24 @@ void create_phone_ui(lv_group_t * g)
 
     // Initialize styles for app icons
     lv_style_init(&style_icon);
-    lv_style_set_radius(&style_icon, 8); // smaller radius
+    lv_style_set_radius(&style_icon, 4); // tiny radius
     lv_style_set_bg_opa(&style_icon, LV_OPA_COVER);
-    lv_style_set_border_width(&style_icon, 1); // smaller border
+    lv_style_set_border_width(&style_icon, 1);
     lv_style_set_border_color(&style_icon, lv_color_hex(0xFFFFFF));
     lv_style_set_border_opa(&style_icon, LV_OPA_30);
-    lv_style_set_shadow_width(&style_icon, 5); // smaller shadow
-    lv_style_set_shadow_color(&style_icon, lv_color_hex(0x000000));
-    lv_style_set_shadow_opa(&style_icon, LV_OPA_30);
+    lv_style_set_shadow_width(&style_icon, 0); // no shadow for tiny icons
     lv_style_set_text_color(&style_icon, lv_color_hex(0xFFFFFF));
 
     // Pressed style
     lv_style_init(&style_icon_pr);
     lv_style_set_bg_opa(&style_icon_pr, LV_OPA_80);
-    lv_style_set_transform_scale(&style_icon_pr, 240); // slightly smaller when pressed
+    lv_style_set_transform_scale(&style_icon_pr, 220); // slightly smaller when pressed
 
     // Focused style (for keypad nav)
     lv_style_init(&style_icon_focus);
     lv_style_set_border_color(&style_icon_focus, lv_color_hex(0x00FF00)); // Green border when focused
     lv_style_set_border_opa(&style_icon_focus, LV_OPA_COVER);
-    lv_style_set_transform_scale(&style_icon_focus, 270); // slightly larger when focused
+    lv_style_set_transform_scale(&style_icon_focus, 280); // slightly larger when focused
 
     // Create a flex container for the grid of apps
     lv_obj_t * app_grid = lv_obj_create(scr);
@@ -101,8 +111,9 @@ void create_phone_ui(lv_group_t * g)
     lv_obj_set_layout(app_grid, LV_LAYOUT_FLEX);
     lv_obj_set_flex_flow(app_grid, LV_FLEX_FLOW_ROW_WRAP);
     lv_obj_set_flex_align(app_grid, LV_FLEX_ALIGN_SPACE_EVENLY, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_SPACE_EVENLY);
-    lv_obj_set_style_pad_all(app_grid, 2, 0); // reduced padding
-    lv_obj_set_style_pad_row(app_grid, 5, 0); // reduced row gap
+    lv_obj_set_style_pad_all(app_grid, 2, 0);
+    lv_obj_set_style_pad_row(app_grid, 2, 0); // even smaller row gap
+    lv_obj_set_style_pad_column(app_grid, 2, 0);
 
     // App definitions
     const char * app_icons[] = {
@@ -131,21 +142,21 @@ void create_phone_ui(lv_group_t * g)
 
     const char * app_names[] = {
         "Snake", "Pushbox", "Call", "Contacts",
-        "Gallery", "Settings", "Music", "Video", "Messages"
+        "Gallery", "Settings", "HW Info", "Test", "Messages"
     };
 
     // Create the apps
     for(int i = 0; i < 9; i++) {
         // App container (to hold icon and label)
         lv_obj_t * app_cont = lv_obj_create(app_grid);
-        lv_obj_set_size(app_cont, 38, 55); // smaller container
+        lv_obj_set_size(app_cont, 24, 38); // much smaller container
         lv_obj_set_style_bg_opa(app_cont, LV_OPA_TRANSP, 0);
         lv_obj_set_style_border_width(app_cont, 0, 0);
         lv_obj_set_style_pad_all(app_cont, 0, 0);
 
         // The interactive button (the icon itself)
         lv_obj_t * btn = lv_btn_create(app_cont);
-        lv_obj_set_size(btn, 32, 32); // smaller icon
+        lv_obj_set_size(btn, 16, 16); // much smaller icon
         lv_obj_align(btn, LV_ALIGN_TOP_MID, 0, 0);
 
         // Apply styles
