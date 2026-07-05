@@ -1,6 +1,5 @@
-obj0/
-obj1/
-obj2/
-obj3/
-fptest.bin
-fptest/fptest.bin
+*.o
+*.d
+*.elf
+*.bin
+*.rel

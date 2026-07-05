@@ -1,7 +1,9 @@
+#include "stdio.h"
+
 #include "common.h"
 #include "syscode.h"
 
-#include <stdio.h>
+
 #include <string.h>
 #include <stdlib.h>
 
@@ -581,6 +583,21 @@ void sys_wait_refresh(void) {
 	LCDC_BASE->irq.clr |= mask;
 }
 
+void sys_setup_tick(void) {
+	// Start timer at 1000 Hz
+	// LCD_TIMER freq = 26M
+	lcd_setup_timer(LCD_TIMER, 26000000 / 1000);
+	// Interrupt enable logic is already handled during IRQ setup in syscode
+}
+
+void sys_clear_tick(void) {
+	uint32_t timer = LCD_TIMER_ADDR;
+	if (MEM4(timer + 0xc) & 4) {
+		MEM4(timer + 0xc) = 9;
+		lcd_refresh_mono(sys_data.framebuf);
+	}
+}
+
 static void lcd_init(const lcd_config_t *lcd) {
 	unsigned w = lcd->width, h = lcd->height, x2, y2, w2, h2;
 	unsigned rotate, mac_arg;
@@ -978,14 +995,17 @@ static void init_charger(void) {
 }
 
 static void irq_handler(void) {
+#if !EMBEDDED
 	uint32_t timer = LCD_TIMER_ADDR;
 	if (MEM4(timer + 0xc) & 4) {
 		MEM4(timer + 0xc) = 9;
 		lcd_refresh_mono(sys_data.framebuf);
 	}
+#endif
 }
 
 extern uint8_t int_vectors[], int_vectors_end[];
+extern void vPortYieldProcessor(void);
 void set_mode_sp(int mode, uint32_t sp);
 void invalidate_tlb(void);
 void invalidate_tlb_mva(uint32_t);
@@ -1058,6 +1078,7 @@ void sys_set_handlers(void) {
 	uint8_t *p = (uint8_t*)CHIPRAM_ADDR + 0x19000;
 
 	MEM4(p + 0x20) = (intptr_t)&irq_handler;
+	MEM4(p + 0x2c) = (intptr_t)&vPortYieldProcessor;
 #ifdef APP_DATA_EXCEPT
 	MEM4(p + 0x24) = (intptr_t)&app_data_except;
 #else

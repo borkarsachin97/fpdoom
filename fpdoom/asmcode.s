@@ -35,14 +35,15 @@ CODE32_FN set_mode_sp
 CODE32_FN int_vectors
 1:	b	1b // reset
 1:	b	6f // undefined
-1:	b	6f // swi
+	ldr	pc, 3f + 12 // swi
 1:	b	5f // prefetch
 1:	b	4f // data
 1:	b	1b // reserved
-	b	2f // irq
+	ldr	pc, 3f // irq
 1:	b	1b // fiq
 
 3:	.long 0xffff0000
+	.long 0xffff0000
 	.long 0xffff0000
 	.long 0xffff0000
 

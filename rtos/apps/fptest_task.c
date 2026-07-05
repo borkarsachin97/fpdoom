@@ -1,7 +1,13 @@
-#include <stdio.h>
+#include "stdio.h"
+
+
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+
+#include "FreeRTOS.h"
+#include "task.h"
+
 #include "syscode.h"
 #include "cmd_def.h"
 #include "usbio.h"
@@ -460,7 +466,11 @@ static void test_efuse(void) {
 	efuse_off();
 }
 
-int main(int argc, char **argv) {
+void fptest_task(void *pvParameters) {
+	(void)pvParameters;
+	int argc = 2;
+	char *argv_arr[] = {"fptest", "timer"};
+	char **argv = argv_arr;
 	int i;
 
 	if (boot_cable_check())
@@ -551,10 +561,11 @@ int main(int argc, char **argv) {
 			argc -= 3; argv += 3;
 		} else {
 			printf("unknown command (\"%s\")\n", argv[1]);
-			return 1;
+			vTaskDelete(NULL);
+			return;
 		}
 	}
-	return 0;
+	vTaskDelete(NULL);
 }
 
 void keytrn_init(void) {

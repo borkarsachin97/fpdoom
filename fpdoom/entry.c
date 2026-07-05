@@ -1,3 +1,5 @@
+#include "stdio.h"
+
 #include "common.h"
 #include "cmd_def.h"
 #include "usbio.h"
@@ -16,7 +18,7 @@
 #include "init_sc6530.h"
 #endif
 
-#include <stdio.h>
+
 #include <string.h>
 #include <stdlib.h>
 #if LIBC_SDIO

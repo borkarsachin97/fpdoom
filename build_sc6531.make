@@ -1,7 +1,7 @@
 # 0 - detect, 1 - SC6531E, 2 - SC6531, 3 - SC6530
 CHIP = 0
 TWO_STAGE ?= 1
-LIBC_SDIO ?= 0
+LIBC_SDIO = 0
 PACK_RELOC = ../pack_reloc/pack_reloc
 OBJDIR ?= obj$(CHIP)
 SYSDIR = ../fpdoom
@@ -49,7 +49,7 @@ endif
 
 APP_CFLAGS += -DEMBEDDED=2
 CFLAGS += -Wall -Wextra -funsigned-char
-CFLAGS += -fno-PIE -ffreestanding -march=armv5te -mthumb $(EXTRA_CFLAGS) -fno-strict-aliasing
+CFLAGS += -fno-PIE -ffreestanding -march=armv5te -marm $(EXTRA_CFLAGS) -fno-strict-aliasing
 CFLAGS += -fomit-frame-pointer
 CFLAGS += -ffunction-sections -fdata-sections
 LFLAGS = -pie -nostartfiles -nodefaultlibs -nostdlib -Wl,-T,$(LDSCRIPT) -Wl,--gc-sections -Wl,-z,notext
@@ -61,7 +61,7 @@ endif
 # -Wl,--no-dynamic-linker
 LFLAGS += $(LD_EXTRA)
 CFLAGS += -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0
-CFLAGS += -isystem $(SYSDIR)/include
+CFLAGS += -I$(SYSDIR)/include
 ifneq ($(CHIP), 0)
 CFLAGS += -DCHIP=$(CHIP)
 endif
