@@ -18,16 +18,6 @@ static unsigned console_y = 16;
 
 static void draw_string(uint16_t *fb, unsigned fb_w, unsigned fb_h, unsigned x, const char *str, uint16_t color);
 
-void print_trace(const char *msg) {
-    if (!sys_data.framebuf) return;
-    uint16_t *fb = (uint16_t*)sys_data.framebuf;
-    unsigned w = sys_data.display.w2;
-    unsigned h = sys_data.display.h2;
-    draw_string(fb, w, h, 0, msg, 0x07FF); // Cyan color for tracing
-    sys_start_refresh();
-    sys_wait_refresh();
-}
-
 static void draw_string(uint16_t *fb, unsigned fb_w, unsigned fb_h, unsigned x, const char *str, uint16_t color) {
     while (*str) {
         char c = *str++;
@@ -140,23 +130,12 @@ int main(int argc, char **argv) {
     sys_start_refresh();
     sys_wait_refresh();
 
-    draw_string((uint16_t*)fb, w, h, 0, "Creating mutex...\n", 0xFFFF);
-    sys_start_refresh();
-    sys_wait_refresh();
-
     xPrintfMutex = xSemaphoreCreateMutex();
-
-    draw_string((uint16_t*)fb, w, h, 0, "Creating tasks...\n", 0xFFFF);
-    sys_start_refresh();
-    sys_wait_refresh();
 
     xTaskCreate(vDimBrightnessTask, "DimTask", 1024, NULL, tskIDLE_PRIORITY + 1, NULL);
     xTaskCreate(vHighBrightnessTask, "HighTask", 1024, NULL, tskIDLE_PRIORITY + 1, NULL);
 
-    draw_string((uint16_t*)fb, w, h, 0, "Starting scheduler...\n", 0xFFFF);
-    sys_start_refresh();
-    sys_wait_refresh();
-
+    __asm volatile ( "msr cpsr_c, %0" :: "i" (0xd3) );
     vTaskStartScheduler();
 
     for(;;);
