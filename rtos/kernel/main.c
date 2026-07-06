@@ -34,7 +34,14 @@ static void draw_string(uint16_t *fb, unsigned fb_w, unsigned fb_h, unsigned x, 
         if (c < 0x20 || c > 0x7E) c = '?';
 
         if (x + 8 > fb_w) {
-            continue; // Basic truncation for this task test
+            x = 0;
+            console_y += 16;
+            if (console_y >= fb_h) {
+                console_y = 0;
+                for(unsigned i = 0; i < fb_w * fb_h; i++) {
+                    fb[i] = 0x0000;
+                }
+            }
         }
 
         const uint8_t *bm = font_data + (c - 0x20) * 16;
