@@ -196,15 +196,5 @@ static void prvSetupTimerInterrupt( void )
        in `irq_handler`. Here we configure the generic tick handler. */
 
     configSETUP_TICK_INTERRUPT();
-
-    #if configUSE_PREEMPTION == 0
-        extern void( vNonPreemptiveTick ) ( void );
-        uint8_t *p = (uint8_t*)0x14000000 + 0x19000;
-        *((volatile uint32_t*)(p + 0x20)) = (uint32_t)&vNonPreemptiveTick;
-    #else
-        extern void( vPreemptiveTick )( void );
-        uint8_t *p = (uint8_t*)0x14000000 + 0x19000;
-        *((volatile uint32_t*)(p + 0x20)) = (uint32_t)&vPreemptiveTick;
-    #endif
 }
 /*-----------------------------------------------------------*/

@@ -570,11 +570,14 @@ void sys_start_refresh(void) {
 	clean_dcache();
 	if (sys_data.spi)
 		spi_refresh_next(sys_data.spi);
+	LCDC_BASE->irq.en |= mask;
 	LCDC_BASE->ctrl |= 8;	// start refresh
 }
 
 void sys_wait_refresh(void) {
 	int mask = 1;	// osd == 3 ? 2 : /* osd0 */ 1
+
+	if (!(LCDC_BASE->irq.en & mask)) return;
 
 	while ((LCDC_BASE->irq.raw & mask) == 0);
 	LCDC_BASE->irq.clr |= mask;
@@ -987,8 +990,7 @@ static void init_charger(void) {
 	}
 }
 
-static void irq_handler(void) {
-}
+extern void vPreemptiveTick(void);
 
 extern uint8_t int_vectors[], int_vectors_end[];
 extern void vPortYieldProcessor(void);
@@ -1063,7 +1065,7 @@ void app_data_except(uint32_t fsr, uint32_t far, uint32_t pc);
 void sys_set_handlers(void) {
 	uint8_t *p = (uint8_t*)CHIPRAM_ADDR + 0x19000;
 
-	MEM4(p + 0x20) = (intptr_t)&irq_handler;
+	MEM4(p + 0x20) = (intptr_t)&vPreemptiveTick;
 	MEM4(p + 0x2c) = (intptr_t)&vPortYieldProcessor;
 #ifdef APP_DATA_EXCEPT
 	MEM4(p + 0x24) = (intptr_t)&app_data_except;

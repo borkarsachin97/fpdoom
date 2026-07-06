@@ -63,7 +63,16 @@ SemaphoreHandle_t xPrintfMutex;
 
 void vDimBrightnessTask(void *pvParameters) {
     (void)pvParameters;
+    uint16_t *fb = (uint16_t*)sys_data.framebuf;
+    unsigned w = sys_data.display.w2;
+    unsigned h = sys_data.display.h2;
     for(;;) {
+        if(xSemaphoreTake(xPrintfMutex, portMAX_DELAY) == pdTRUE) {
+            draw_string(fb, w, h, 0, "DimTask executing!\n", 0xF800);
+            sys_start_refresh();
+            sys_wait_refresh();
+            xSemaphoreGive(xPrintfMutex);
+        }
         sys_brightness(10);
         vTaskDelay(pdMS_TO_TICKS(3000));
     }
@@ -71,8 +80,17 @@ void vDimBrightnessTask(void *pvParameters) {
 
 void vHighBrightnessTask(void *pvParameters) {
     (void)pvParameters;
+    uint16_t *fb = (uint16_t*)sys_data.framebuf;
+    unsigned w = sys_data.display.w2;
+    unsigned h = sys_data.display.h2;
     for(;;) {
         vTaskDelay(pdMS_TO_TICKS(1500));
+        if(xSemaphoreTake(xPrintfMutex, portMAX_DELAY) == pdTRUE) {
+            draw_string(fb, w, h, 0, "HighTask executing!\n", 0x07E0);
+            sys_start_refresh();
+            sys_wait_refresh();
+            xSemaphoreGive(xPrintfMutex);
+        }
         sys_brightness(100);
         vTaskDelay(pdMS_TO_TICKS(1500));
     }
@@ -110,8 +128,22 @@ int main(int argc, char **argv) {
     sys_start_refresh();
     sys_wait_refresh();
 
+    draw_string((uint16_t*)fb, w, h, 0, "Creating mutex...\n", 0xFFFF);
+    sys_start_refresh();
+    sys_wait_refresh();
+
+    xPrintfMutex = xSemaphoreCreateMutex();
+
+    draw_string((uint16_t*)fb, w, h, 0, "Creating tasks...\n", 0xFFFF);
+    sys_start_refresh();
+    sys_wait_refresh();
+
     xTaskCreate(vDimBrightnessTask, "DimTask", 1024, NULL, tskIDLE_PRIORITY + 1, NULL);
     xTaskCreate(vHighBrightnessTask, "HighTask", 1024, NULL, tskIDLE_PRIORITY + 1, NULL);
+
+    draw_string((uint16_t*)fb, w, h, 0, "Starting scheduler...\n", 0xFFFF);
+    sys_start_refresh();
+    sys_wait_refresh();
 
     vTaskStartScheduler();
 
