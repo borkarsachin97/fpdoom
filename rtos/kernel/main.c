@@ -14,16 +14,37 @@ static const uint8_t font_data[] = {
 #include "../fpmenu/font8x16.h"
 };
 
-static void draw_string(uint16_t *fb, unsigned fb_w, unsigned x, unsigned y, const char *str, uint16_t color) {
+static unsigned console_y = 16;
+
+static void draw_string(uint16_t *fb, unsigned fb_w, unsigned fb_h, unsigned x, const char *str, uint16_t color) {
     while (*str) {
         char c = *str++;
+
+        if (c == '\n') {
+            console_y += 16;
+            if (console_y >= fb_h) {
+                console_y = 0;
+                for(unsigned i = 0; i < fb_w * fb_h; i++) {
+                    fb[i] = 0x0000;
+                }
+            }
+            continue;
+        }
+
         if (c < 0x20 || c > 0x7E) c = '?';
+
+        if (x + 8 > fb_w) {
+            continue; // Basic truncation for this task test
+        }
+
         const uint8_t *bm = font_data + (c - 0x20) * 16;
         for (unsigned fy = 0; fy < 16; fy++) {
             uint8_t row = bm[fy];
             for (unsigned fx = 0; fx < 8; fx++) {
                 if (row & (0x80 >> fx)) {
-                    fb[(y + fy) * fb_w + x + fx] = color;
+                    fb[(console_y + fy) * fb_w + x + fx] = color;
+                } else {
+                    fb[(console_y + fy) * fb_w + x + fx] = 0x0000;
                 }
             }
         }
@@ -38,11 +59,12 @@ void vRedTextTask(void *pvParameters) {
     int line = 1;
     uint16_t *fb = (uint16_t*)sys_data.framebuf;
     unsigned w = sys_data.display.w2;
+    unsigned h = sys_data.display.h2;
     for(;;) {
         if(xSemaphoreTake(xPrintfMutex, portMAX_DELAY) == pdTRUE) {
             char buf[64];
-            sprintf(buf, "TASK RED RUNNING... line %d", line++);
-            draw_string(fb, w, 0, (line % 10) * 16 + 16, buf, 0xF800);
+            sprintf(buf, "RED %d\n", line++);
+            draw_string(fb, w, h, 0, buf, 0xF800);
             sys_start_refresh();
             sys_wait_refresh();
             xSemaphoreGive(xPrintfMutex);
@@ -56,11 +78,12 @@ void vGreenTextTask(void *pvParameters) {
     int line = 1;
     uint16_t *fb = (uint16_t*)sys_data.framebuf;
     unsigned w = sys_data.display.w2;
+    unsigned h = sys_data.display.h2;
     for(;;) {
         if(xSemaphoreTake(xPrintfMutex, portMAX_DELAY) == pdTRUE) {
             char buf[64];
-            sprintf(buf, "TASK GREEN RUNNING... line %d", line++);
-            draw_string(fb, w, 100, (line % 10) * 16 + 16, buf, 0x07E0);
+            sprintf(buf, "GREEN %d\n", line++);
+            draw_string(fb, w, h, w / 2, buf, 0x07E0);
             sys_start_refresh();
             sys_wait_refresh();
             xSemaphoreGive(xPrintfMutex);
@@ -97,7 +120,7 @@ int main(int argc, char **argv) {
         }
     }
 
-    draw_string((uint16_t*)fb, w, 10, 0, "Welcome to FreeRTOS on SC6531!", 0xFFFF);
+    draw_string((uint16_t*)fb, w, h, 0, "Welcome to FreeRTOS on SC6531!\n", 0xFFFF);
     sys_start_refresh();
     sys_wait_refresh();
 
