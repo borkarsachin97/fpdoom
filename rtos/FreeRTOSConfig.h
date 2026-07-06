@@ -25,13 +25,7 @@
 #define configUSE_APPLICATION_TASK_TAG	0
 #define configUSE_COUNTING_SEMAPHORES	1
 
-/* ARM_CA9 Port specific definitions */
-#define configUNIQUE_INTERRUPT_PRIORITIES 32
-#define configMAX_API_CALL_INTERRUPT_PRIORITY 18
-#define configINTERRUPT_CONTROLLER_BASE_ADDRESS 0x80000000
-#define configINTERRUPT_CONTROLLER_CPU_INTERFACE_OFFSET 0x1000
-
-/* ARM_CA9 Port specific hook */
+/* ARM926EJ-S Port specific hook */
 #define configSETUP_TICK_INTERRUPT()    sys_setup_tick()
 #define configCLEAR_TICK_INTERRUPT()    sys_clear_tick()
 
@@ -48,5 +42,6 @@ to exclude the API function. */
 #define INCLUDE_vTaskSuspend			1
 #define INCLUDE_vTaskDelayUntil			1
 #define INCLUDE_vTaskDelay				1
+#define INCLUDE_xTaskGetSchedulerState  1
 
 #endif /* FREERTOS_CONFIG_H */
