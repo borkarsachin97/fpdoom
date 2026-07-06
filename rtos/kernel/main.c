@@ -32,7 +32,7 @@ void vGreenTextTask(void *pvParameters) {
     for(;;) {
         if(xSemaphoreTake(xPrintfMutex, portMAX_DELAY) == pdTRUE) {
             set_console_color(0x07E0); // Green
-            set_console_x(120);        // Right side
+            set_console_x(64);         // Right side
             printf("TASK GREEN RUNNING... line %d\n", line++);
             xSemaphoreGive(xPrintfMutex);
         }
@@ -68,6 +68,7 @@ int main(int argc, char **argv) {
         }
     }
     sys_start_refresh();
+    sys_wait_refresh();
 
     xPrintfMutex = xSemaphoreCreateMutex();
 
