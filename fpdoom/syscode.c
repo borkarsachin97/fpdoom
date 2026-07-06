@@ -570,14 +570,11 @@ void sys_start_refresh(void) {
 	clean_dcache();
 	if (sys_data.spi)
 		spi_refresh_next(sys_data.spi);
-	LCDC_BASE->irq.en |= mask;
 	LCDC_BASE->ctrl |= 8;	// start refresh
 }
 
 void sys_wait_refresh(void) {
 	int mask = 1;	// osd == 3 ? 2 : /* osd0 */ 1
-
-	if (!(LCDC_BASE->irq.en & mask)) return;
 
 	while ((LCDC_BASE->irq.raw & mask) == 0);
 	LCDC_BASE->irq.clr |= mask;

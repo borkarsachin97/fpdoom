@@ -110,8 +110,6 @@ int main(int argc, char **argv) {
     sys_start_refresh();
     sys_wait_refresh();
 
-    xPrintfMutex = xSemaphoreCreateMutex();
-
     xTaskCreate(vDimBrightnessTask, "DimTask", 1024, NULL, tskIDLE_PRIORITY + 1, NULL);
     xTaskCreate(vHighBrightnessTask, "HighTask", 1024, NULL, tskIDLE_PRIORITY + 1, NULL);
 
