@@ -22,9 +22,10 @@ int putchar(int ch) {
 }
 
 int puts(const char *str) {
-	size_t len = strlen(str);
-	if (fwrite(str, 1, len, stdout) != len) return EOF;
-	return putchar('\n');
+	while (*str) {
+		fputc(*str++, stdout);
+	}
+	return fputc('\n', stdout);
 }
 
 int fputs(const char *str, FILE *f) {
@@ -83,15 +84,6 @@ static const uint8_t font8x16[] = {
 
 static int console_x = 0;
 static int console_y = 0;
-static uint16_t console_color = 0xffff;
-
-void set_console_color(uint16_t color) {
-	console_color = color;
-}
-
-void set_console_x(int x) {
-	console_x = x;
-}
 
 int fputc(int ch, FILE *f) {
 	if (!sys_data.framebuf) return ch;
@@ -128,7 +120,7 @@ int fputc(int ch, FILE *f) {
 		uint8_t row = glyph[i];
 		for (int j = 0; j < 8; j++) {
 			if (row & (1 << (7 - j))) {
-				fb[(console_y + i) * w + console_x + j] = console_color;
+				fb[(console_y + i) * w + console_x + j] = 0xffff;
 			} else {
 				fb[(console_y + i) * w + console_x + j] = 0x0000;
 			}

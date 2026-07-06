@@ -79,8 +79,6 @@ void sys_start_refresh(void);
 void sys_wait_refresh(void);
 void sys_setup_tick(void);
 void sys_clear_tick(void);
-void set_console_color(uint16_t color);
-void set_console_x(int x);
 __attribute__((noreturn))
 void sys_exit(void);
 __attribute__((noreturn))
