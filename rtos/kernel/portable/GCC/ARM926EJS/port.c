@@ -195,21 +195,16 @@ static void prvSetupTimerInterrupt( void )
        In fpdoom, timer interrupts are set up via `lcd_setup_timer` and handled
        in `irq_handler`. Here we configure the generic tick handler. */
 
+    configSETUP_TICK_INTERRUPT();
+
     #if configUSE_PREEMPTION == 0
         extern void( vNonPreemptiveTick ) ( void );
-        /* Install vNonPreemptiveTick as the system IRQ handler */
-        uint8_t *p = (uint8_t*)0x14000000 + 0x19000; /* CHIPRAM_ADDR */
+        uint8_t *p = (uint8_t*)0x14000000 + 0x19000;
         *((volatile uint32_t*)(p + 0x20)) = (uint32_t)&vNonPreemptiveTick;
     #else
         extern void( vPreemptiveTick )( void );
-        /* Install vPreemptiveTick as the system IRQ handler */
-        uint8_t *p = (uint8_t*)0x14000000 + 0x19000; /* CHIPRAM_ADDR */
+        uint8_t *p = (uint8_t*)0x14000000 + 0x19000;
         *((volatile uint32_t*)(p + 0x20)) = (uint32_t)&vPreemptiveTick;
     #endif
-
-    configSETUP_TICK_INTERRUPT();
-
-    /* Note: The actual hardware timer must be started (e.g. lcd_setup_timer)
-       by the user code before or immediately after starting the scheduler. */
 }
 /*-----------------------------------------------------------*/

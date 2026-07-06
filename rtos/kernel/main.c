@@ -61,41 +61,20 @@ static void draw_string(uint16_t *fb, unsigned fb_w, unsigned fb_h, unsigned x, 
 
 SemaphoreHandle_t xPrintfMutex;
 
-void vRedTextTask(void *pvParameters) {
+void vDimBrightnessTask(void *pvParameters) {
     (void)pvParameters;
-    int line = 1;
-    uint16_t *fb = (uint16_t*)sys_data.framebuf;
-    unsigned w = sys_data.display.w2;
-    unsigned h = sys_data.display.h2;
     for(;;) {
-        if(xSemaphoreTake(xPrintfMutex, portMAX_DELAY) == pdTRUE) {
-            char buf[64];
-            sprintf(buf, "RED %d\n", line++);
-            draw_string(fb, w, h, 0, buf, 0xF800);
-            sys_start_refresh();
-            sys_wait_refresh();
-            xSemaphoreGive(xPrintfMutex);
-        }
-        vTaskDelay(pdMS_TO_TICKS(500));
+        sys_brightness(10);
+        vTaskDelay(pdMS_TO_TICKS(3000));
     }
 }
 
-void vGreenTextTask(void *pvParameters) {
+void vHighBrightnessTask(void *pvParameters) {
     (void)pvParameters;
-    int line = 1;
-    uint16_t *fb = (uint16_t*)sys_data.framebuf;
-    unsigned w = sys_data.display.w2;
-    unsigned h = sys_data.display.h2;
     for(;;) {
-        if(xSemaphoreTake(xPrintfMutex, portMAX_DELAY) == pdTRUE) {
-            char buf[64];
-            sprintf(buf, "GREEN %d\n", line++);
-            draw_string(fb, w, h, w / 2, buf, 0x07E0);
-            sys_start_refresh();
-            sys_wait_refresh();
-            xSemaphoreGive(xPrintfMutex);
-        }
-        vTaskDelay(pdMS_TO_TICKS(300));
+        vTaskDelay(pdMS_TO_TICKS(1500));
+        sys_brightness(100);
+        vTaskDelay(pdMS_TO_TICKS(1500));
     }
 }
 
@@ -133,10 +112,8 @@ int main(int argc, char **argv) {
 
     xPrintfMutex = xSemaphoreCreateMutex();
 
-    if (xPrintfMutex != NULL) {
-        xTaskCreate(vRedTextTask, "RedTask", 1024, NULL, tskIDLE_PRIORITY + 1, NULL);
-        xTaskCreate(vGreenTextTask, "GreenTask", 1024, NULL, tskIDLE_PRIORITY + 1, NULL);
-    }
+    xTaskCreate(vDimBrightnessTask, "DimTask", 1024, NULL, tskIDLE_PRIORITY + 1, NULL);
+    xTaskCreate(vHighBrightnessTask, "HighTask", 1024, NULL, tskIDLE_PRIORITY + 1, NULL);
 
     vTaskStartScheduler();
 

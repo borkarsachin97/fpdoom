@@ -991,11 +991,6 @@ static void init_charger(void) {
 }
 
 static void irq_handler(void) {
-	uint32_t timer = LCD_TIMER_ADDR;
-	if (MEM4(timer + 0xc) & 4) {
-		MEM4(timer + 0xc) = 9;
-		lcd_refresh_mono(sys_data.framebuf);
-	}
 }
 
 extern uint8_t int_vectors[], int_vectors_end[];
