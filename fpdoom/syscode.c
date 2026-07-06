@@ -584,17 +584,13 @@ void sys_wait_refresh(void) {
 }
 
 void sys_setup_tick(void) {
-	// Start timer at 1000 Hz
-	// LCD_TIMER freq = 26M
 	lcd_setup_timer(LCD_TIMER, 26000000 / 1000);
-	// Interrupt enable logic is already handled during IRQ setup in syscode
 }
 
 void sys_clear_tick(void) {
 	uint32_t timer = LCD_TIMER_ADDR;
 	if (MEM4(timer + 0xc) & 4) {
 		MEM4(timer + 0xc) = 9;
-		lcd_refresh_mono(sys_data.framebuf);
 	}
 }
 
@@ -995,13 +991,11 @@ static void init_charger(void) {
 }
 
 static void irq_handler(void) {
-#if !EMBEDDED
 	uint32_t timer = LCD_TIMER_ADDR;
 	if (MEM4(timer + 0xc) & 4) {
 		MEM4(timer + 0xc) = 9;
 		lcd_refresh_mono(sys_data.framebuf);
 	}
-#endif
 }
 
 extern uint8_t int_vectors[], int_vectors_end[];

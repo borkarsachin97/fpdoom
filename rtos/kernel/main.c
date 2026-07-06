@@ -4,11 +4,41 @@
 
 #include "FreeRTOS.h"
 #include "task.h"
+#include "semphr.h"
 
 #include "syscode.h"
 
 extern void *framebuffer_init(unsigned size1);
-extern void fptest_task(void *pvParameters);
+
+SemaphoreHandle_t xPrintfMutex;
+
+void vRedTextTask(void *pvParameters) {
+    (void)pvParameters;
+    int line = 0;
+    for(;;) {
+        if(xSemaphoreTake(xPrintfMutex, portMAX_DELAY) == pdTRUE) {
+            set_console_color(0xF800); // Red
+            set_console_x(0);          // Left side
+            printf("TASK RED RUNNING... line %d\n", line++);
+            xSemaphoreGive(xPrintfMutex);
+        }
+        vTaskDelay(pdMS_TO_TICKS(500));
+    }
+}
+
+void vGreenTextTask(void *pvParameters) {
+    (void)pvParameters;
+    int line = 0;
+    for(;;) {
+        if(xSemaphoreTake(xPrintfMutex, portMAX_DELAY) == pdTRUE) {
+            set_console_color(0x07E0); // Green
+            set_console_x(120);        // Right side
+            printf("TASK GREEN RUNNING... line %d\n", line++);
+            xSemaphoreGive(xPrintfMutex);
+        }
+        vTaskDelay(pdMS_TO_TICKS(300));
+    }
+}
 
 int main(int argc, char **argv) {
     (void)argc;
@@ -34,17 +64,19 @@ int main(int argc, char **argv) {
 
     if (fb) {
         for(unsigned i = 0; i < size; i++) {
-            ((uint16_t*)fb)[i] = 0xF100;
+            ((uint16_t*)fb)[i] = 0x0000;
         }
     }
     sys_start_refresh();
 
+    xPrintfMutex = xSemaphoreCreateMutex();
+
     printf("Welcome to FreeRTOS on SC6531!\n");
 
-    xTaskCreate(fptest_task, "fptest", 2048, NULL, tskIDLE_PRIORITY + 1, NULL);
-
-    volatile uint32_t *timer = (volatile uint32_t *)0x8b000000;
-    timer[0] = 26000;
+    if (xPrintfMutex != NULL) {
+        xTaskCreate(vRedTextTask, "RedTask", 1024, NULL, tskIDLE_PRIORITY + 1, NULL);
+        xTaskCreate(vGreenTextTask, "GreenTask", 1024, NULL, tskIDLE_PRIORITY + 1, NULL);
+    }
 
     vTaskStartScheduler();
 

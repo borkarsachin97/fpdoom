@@ -83,10 +83,19 @@ static const uint8_t font8x16[] = {
 
 static int console_x = 0;
 static int console_y = 0;
+static uint16_t console_color = 0xffff;
+
+void set_console_color(uint16_t color) {
+	console_color = color;
+}
+
+void set_console_x(int x) {
+	console_x = x;
+}
 
 int fputc(int ch, FILE *f) {
 	if (!sys_data.framebuf) return ch;
-	
+
 	struct sys_display *disp = &sys_data.display;
 	int w = disp->w1;
 	int h = disp->h1;
@@ -96,7 +105,6 @@ int fputc(int ch, FILE *f) {
 		console_y += 16;
 		if (console_y >= h) {
 			console_y = 0;
-			// clear screen ?
 		}
 		sys_start_refresh();
 		sys_wait_refresh();
@@ -120,7 +128,7 @@ int fputc(int ch, FILE *f) {
 		uint8_t row = glyph[i];
 		for (int j = 0; j < 8; j++) {
 			if (row & (1 << (7 - j))) {
-				fb[(console_y + i) * w + console_x + j] = 0xffff;
+				fb[(console_y + i) * w + console_x + j] = console_color;
 			} else {
 				fb[(console_y + i) * w + console_x + j] = 0x0000;
 			}
