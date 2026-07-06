@@ -16,6 +16,18 @@ static const uint8_t font_data[] = {
 
 static unsigned console_y = 16;
 
+static void draw_string(uint16_t *fb, unsigned fb_w, unsigned fb_h, unsigned x, const char *str, uint16_t color);
+
+void print_trace(const char *msg) {
+    if (!sys_data.framebuf) return;
+    uint16_t *fb = (uint16_t*)sys_data.framebuf;
+    unsigned w = sys_data.display.w2;
+    unsigned h = sys_data.display.h2;
+    draw_string(fb, w, h, 0, msg, 0x07FF); // Cyan color for tracing
+    sys_start_refresh();
+    sys_wait_refresh();
+}
+
 static void draw_string(uint16_t *fb, unsigned fb_w, unsigned fb_h, unsigned x, const char *str, uint16_t color) {
     while (*str) {
         char c = *str++;

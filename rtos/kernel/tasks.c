@@ -3706,9 +3706,13 @@ STATIC BaseType_t prvCreateIdleTasks( void )
 
 /*-----------------------------------------------------------*/
 
+extern void print_trace(const char *msg);
+
 void vTaskStartScheduler( void )
 {
     BaseType_t xReturn;
+
+    print_trace("vTaskStartScheduler enter\n");
 
     traceENTER_vTaskStartScheduler();
 
@@ -3720,6 +3724,7 @@ void vTaskStartScheduler( void )
     }
     #endif /* #if ( configUSE_CORE_AFFINITY == 1 ) && ( configNUMBER_OF_CORES > 1 ) */
 
+    print_trace("Creating idle tasks...\n");
     xReturn = prvCreateIdleTasks();
 
     #if ( configUSE_TIMERS == 1 )
@@ -3737,6 +3742,7 @@ void vTaskStartScheduler( void )
 
     if( xReturn == pdPASS )
     {
+        print_trace("Idle tasks created. Disabling interrupts...\n");
         /* freertos_tasks_c_additions_init() should only be called if the user
          * definable macro FREERTOS_TASKS_C_ADDITIONS_INIT() is defined, as that is
          * the only macro called by the function. */
@@ -3779,6 +3785,8 @@ void vTaskStartScheduler( void )
 
         /* Setting up the timer tick is hardware specific and thus in the
          * portable interface. */
+
+        print_trace("Calling xPortStartScheduler...\n");
 
         /* The return value for xPortStartScheduler is not required
          * hence using a void datatype. */

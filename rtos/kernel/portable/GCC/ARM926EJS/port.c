@@ -160,12 +160,16 @@ StackType_t * pxPortInitialiseStack( StackType_t * pxTopOfStack,
 }
 /*-----------------------------------------------------------*/
 
+extern void print_trace(const char *msg);
+
 BaseType_t xPortStartScheduler( void )
 {
+    print_trace("xPortStartScheduler enter\n");
     /* Start the timer that generates the tick ISR.  Interrupts are disabled
      * here already. */
     prvSetupTimerInterrupt();
 
+    print_trace("Calling vPortISRStartFirstTask...\n");
     /* Start the first task. */
     vPortISRStartFirstTask();
 
@@ -195,6 +199,8 @@ static void prvSetupTimerInterrupt( void )
        In fpdoom, timer interrupts are set up via `lcd_setup_timer` and handled
        in `irq_handler`. Here we configure the generic tick handler. */
 
+    print_trace("prvSetupTimerInterrupt enter\n");
     configSETUP_TICK_INTERRUPT();
+    print_trace("Timer hardware setup complete\n");
 }
 /*-----------------------------------------------------------*/
