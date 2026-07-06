@@ -22,10 +22,9 @@ int putchar(int ch) {
 }
 
 int puts(const char *str) {
-	while (*str) {
-		fputc(*str++, stdout);
-	}
-	return fputc('\n', stdout);
+	size_t len = strlen(str);
+	if (fwrite(str, 1, len, stdout) != len) return EOF;
+	return putchar('\n');
 }
 
 int fputs(const char *str, FILE *f) {
@@ -75,62 +74,7 @@ void _stdio_init(void) {
 
 int fflush(FILE *f) { return 0; }
 int fgetc(FILE *f) { return EOF; }
-
-#include "syscode.h"
-
-static const uint8_t font8x16[] = {
-#include "../fpmenu/font8x16.h"
-};
-
-static int console_x = 0;
-static int console_y = 0;
-
-int fputc(int ch, FILE *f) {
-	if (!sys_data.framebuf) return ch;
-
-	struct sys_display *disp = &sys_data.display;
-	int w = disp->w1;
-	int h = disp->h1;
-
-	if (ch == '\n') {
-		console_x = 0;
-		console_y += 16;
-		if (console_y >= h) {
-			console_y = 0;
-		}
-		sys_start_refresh();
-		sys_wait_refresh();
-		return ch;
-	}
-
-	if (ch < 0x20 || ch > 0x7f) return ch;
-
-	const uint8_t *glyph = &font8x16[(ch - 0x20) * 16];
-	uint16_t *fb = (uint16_t*)sys_data.framebuf;
-
-	if (console_x + 8 > w) {
-		console_x = 0;
-		console_y += 16;
-		if (console_y >= h) {
-			console_y = 0;
-		}
-	}
-
-	for (int i = 0; i < 16; i++) {
-		uint8_t row = glyph[i];
-		for (int j = 0; j < 8; j++) {
-			if (row & (1 << (7 - j))) {
-				fb[(console_y + i) * w + console_x + j] = 0xffff;
-			} else {
-				fb[(console_y + i) * w + console_x + j] = 0x0000;
-			}
-		}
-	}
-
-	console_x += 8;
-	return ch;
-}
-
+int fputc(int ch, FILE *f) { return ch; }
 size_t fread(void *dst, size_t size, size_t count, FILE *f) { return 0; }
 size_t fwrite(const void *src, size_t size, size_t count, FILE *f) { return 0; }
 int fseek(FILE *f, long offset, int origin) { return -1; }
