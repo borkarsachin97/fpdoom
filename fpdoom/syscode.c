@@ -999,7 +999,7 @@ void invalidate_tlb(void);
 void invalidate_tlb_mva(uint32_t);
 
 void sys_prep_vectors(uint32_t *ttb) {
-	uint8_t *p = (uint8_t*)CHIPRAM_ADDR + 0x19000;
+	uint8_t *p = (uint8_t*)CHIPRAM_ADDR + 0x300000;
 	intptr_t sp = (intptr_t)(p + 0x9000);
 	uint32_t cb = 3 << 2; // write-back cachable
 	uint32_t domain = 1 << 5;
@@ -1063,7 +1063,7 @@ static void undef_handler(uint32_t pc) {
 void app_data_except(uint32_t fsr, uint32_t far, uint32_t pc);
 
 void sys_set_handlers(void) {
-	uint8_t *p = (uint8_t*)CHIPRAM_ADDR + 0x19000;
+	uint8_t *p = (uint8_t*)CHIPRAM_ADDR + 0x300000;
 
 	MEM4(p + 0x20) = (intptr_t)&vPreemptiveTick;
 	MEM4(p + 0x2c) = (intptr_t)&vPortYieldProcessor;
