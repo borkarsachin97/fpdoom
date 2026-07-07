@@ -143,8 +143,11 @@ StackType_t * pxPortInitialiseStack( StackType_t * pxTopOfStack,
 
     #ifdef THUMB_INTERWORK
     {
-        /* We want the task to start in thumb mode. */
-        *pxTopOfStack |= portTHUMB_MODE_BIT;
+        /* We want the task to start in thumb mode only if the function pointer has the thumb bit set. */
+        if( ( ( uint32_t ) pxCode & 0x01UL ) != 0x00 )
+        {
+            *pxTopOfStack |= portTHUMB_MODE_BIT;
+        }
     }
     #endif
 
