@@ -26,7 +26,7 @@
 #define configUSE_COUNTING_SEMAPHORES	1
 
 /* ARM926EJ-S Port specific hook */
-#define configSETUP_TICK_INTERRUPT()    sys_setup_tick()
+#define configSETUP_TICK_INTERRUPT()    sys_setup_tick_and_start()
 #define configCLEAR_TICK_INTERRUPT()    sys_clear_tick()
 
 /* Co-routine definitions. */

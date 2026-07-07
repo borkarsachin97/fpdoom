@@ -587,6 +587,11 @@ void sys_setup_tick(void) {
 	lcd_setup_timer(LCD_TIMER, 26000000 / 1000);
 }
 
+void sys_setup_tick_and_start(void) {
+	sys_setup_tick();
+	lcd_start_timer();
+}
+
 void sys_clear_tick(void) {
 	uint32_t timer = LCD_TIMER_ADDR;
 	if (MEM4(timer + 0xc) & 4) {

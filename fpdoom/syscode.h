@@ -78,6 +78,7 @@ void sys_framebuffer(void *base);
 void sys_start_refresh(void);
 void sys_wait_refresh(void);
 void sys_setup_tick(void);
+void sys_setup_tick_and_start(void);
 void sys_clear_tick(void);
 __attribute__((noreturn))
 void sys_exit(void);
