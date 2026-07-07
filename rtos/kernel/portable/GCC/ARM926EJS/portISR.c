@@ -55,20 +55,53 @@ volatile uint32_t ulCriticalNesting = 9999UL;
 /*-----------------------------------------------------------*/
 
 /* ISR to handle manual context switches (from a call to taskYIELD()). */
-void vPortYieldProcessor( void ) __attribute__( ( interrupt( "SWI" ), naked ) );
+void vPortYieldProcessor( void ) __attribute__( ( naked ) );
 
 /*
  * The scheduler can only be started from ARM mode, hence the inclusion of this
  * function here.
  */
-void vPortISRStartFirstTask( void );
+void vPortISRStartFirstTask( void ) __attribute__( ( naked ) );
 /*-----------------------------------------------------------*/
+
+#define portSAVE_CONTEXT_ASM \
+    "STMDB  SP!, {R0} \n\t" \
+    "STMDB  SP,{SP}^ \n\t" \
+    "NOP \n\t" \
+    "SUB    SP, SP, #4 \n\t" \
+    "LDMIA  SP!,{R0} \n\t" \
+    "STMDB  R0!, {LR} \n\t" \
+    "MOV    LR, R0 \n\t" \
+    "LDMIA  SP!, {R0} \n\t" \
+    "STMDB  LR,{R0-LR}^ \n\t" \
+    "NOP \n\t" \
+    "SUB    LR, LR, #60 \n\t" \
+    "MRS    R0, SPSR \n\t" \
+    "STMDB  LR!, {R0} \n\t" \
+    "LDR    R0, =ulCriticalNesting \n\t" \
+    "LDR    R0, [R0] \n\t" \
+    "STMDB  LR!, {R0} \n\t" \
+    "LDR    R1, =pxCurrentTCB \n\t" \
+    "LDR    R0, [R1] \n\t" \
+    "STR    LR, [R0] \n\t"
+
+#define portRESTORE_CONTEXT_ASM \
+    "LDR    R0, =pxCurrentTCB \n\t" \
+    "LDR    R0, [R0] \n\t" \
+    "LDR    LR, [R0] \n\t" \
+    "LDR    R0, =ulCriticalNesting \n\t" \
+    "LDMFD  LR!, {R1} \n\t" \
+    "STR    R1, [R0] \n\t" \
+    "LDMFD  LR!, {R0} \n\t" \
+    "MSR    SPSR_cxsf, R0 \n\t" \
+    "LDMFD  LR, {R0-R14}^ \n\t" \
+    "NOP \n\t" \
+    "LDR    LR, [LR, #+60] \n\t" \
+    "SUBS   PC, LR, #4 \n\t"
 
 void vPortISRStartFirstTask( void )
 {
-    /* Simply start the scheduler.  This is included here as it can only be
-     * called from ARM mode. */
-    portRESTORE_CONTEXT();
+    __asm volatile ( portRESTORE_CONTEXT_ASM );
 }
 /*-----------------------------------------------------------*/
 
@@ -82,19 +115,13 @@ void vPortISRStartFirstTask( void )
  */
 void vPortYieldProcessor( void )
 {
-    /* Within an IRQ ISR the link register has an offset from the true return
-     * address, but an SWI ISR does not.  Add the offset manually so the same
-     * ISR return code can be used in both cases. */
-    __asm volatile ( "ADD       LR, LR, #4" );
-
-    /* Perform the context switch.  First save the context of the current task. */
-    portSAVE_CONTEXT();
-
-    /* Find the highest priority task that is ready to run. */
-    vTaskSwitchContext();
-
-    /* Restore the context of the new task. */
-    portRESTORE_CONTEXT();
+    /* Use a unified assembly block to guarantee GCC doesn't insert register-clobbering code. */
+    __asm volatile (
+        "ADD    LR, LR, #4 \n\t"
+        portSAVE_CONTEXT_ASM
+        "BL     vTaskSwitchContext \n\t"
+        portRESTORE_CONTEXT_ASM
+    );
 }
 /*-----------------------------------------------------------*/
 
@@ -126,20 +153,17 @@ void vPortYieldProcessor( void )
     void vPreemptiveTick( void ) __attribute__( ( naked ) );
     void vPreemptiveTick( void )
     {
-        /* Save the context of the current task. */
-        portSAVE_CONTEXT();
-
-        /* Increment the tick count - this may wake a task. */
-        if( xTaskIncrementTick() != pdFALSE )
-        {
-            /* Find the highest priority task that is ready to run. */
-            vTaskSwitchContext();
-        }
-
-        /* Clear the timer interrupt. */
-        configCLEAR_TICK_INTERRUPT();
-
-        portRESTORE_CONTEXT();
+        /* Use a unified assembly block to guarantee GCC doesn't insert register-clobbering code. */
+        __asm volatile (
+            portSAVE_CONTEXT_ASM
+            "BL     xTaskIncrementTick \n\t"
+            "CMP    R0, #0 \n\t"
+            "BEQ    1f \n\t"
+            "BL     vTaskSwitchContext \n\t"
+            "1: \n\t"
+            "BL     sys_clear_tick \n\t"
+            portRESTORE_CONTEXT_ASM
+        );
     }
 
 #endif /* if configUSE_PREEMPTION == 0 */
